@@ -2,12 +2,7 @@ import java.util.*;
 
 // Інтерфейс командного рядка
 public class CLI {
-    private final List<AnimalTypes> list = new ArrayList<>(); // Було б не погано, тут використовувати базу даних
     private final Scanner scanner = new Scanner(System.in); // Сканер
-
-    public List<AnimalTypes> getList() {
-        return list;
-    }
 
     // Головний метод класу
     public void run() {
@@ -17,7 +12,8 @@ public class CLI {
                     """
                     Введіть номер команди:
                     1 - Додати нову тварину
-                    2 - Вихід
+                    2 - Знайти тварин по ІПН господаря
+                    3 - Вихід
                     """;
             System.out.println(commandsInfo); // Друкувати список доступних команд
             int command = getInt(); // Отримати команду від користувача
@@ -37,10 +33,17 @@ public class CLI {
                     System.out.println("Введіть лікування:"); // Повідомити про те, якого вводу програма очікує
                     animalTypes.setTreatment(getString()); // Лікування
                     getInformationAboutTheInitialReview(animalTypes); // Опис первинного огляду, частин тіла тварини
-                    list.add(animalTypes); // Додати нову тварину до бази даних
+                    DB.addToFile(animalTypes); // Додати нову тварину до бази даних
                     System.out.println("Нову тварину додано успішно!"); // Повідомити про успішну операцію користувача
                 }
-                case 2 -> { // Команда на вихід
+                case 2 -> { // Знайти тварин по ІПН господаря
+                    System.out.println("Введіть ІПН господаря:"); // Повідомити про те, якого вводу програма очікує
+                    List<AnimalTypes> animalTypes = DB.searchForAnimalsByTheOwnersPersonalIdentificationNumber(getTIN());// ІПН господаря
+                    for (AnimalTypes animalType : animalTypes) { // Біг по знайденому
+                        System.out.println(animalType); // Друкувати в консоль
+                    }
+                }
+                case 3 -> { // Команда на вихід
                     scanner.close(); // Закрити сканер
                     return; // Вийти з циклу та методу
                 }
@@ -93,7 +96,12 @@ public class CLI {
     private String getString() {
         while (true) { // Нескінченний цикл
             try {
-                return scanner.nextLine(); // Отримати текст
+                String line = scanner.nextLine();
+                if (line.length() > 0) {
+                    return line; // Отримати текст
+                } else {
+                    System.out.println("Значення не може бути пустим!");
+                }
             } catch (Exception ex) {
                 System.out.println("Ви унікальна людина, змогли зламати читання текстового рядка!");
             }
