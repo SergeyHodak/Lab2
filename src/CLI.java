@@ -3,6 +3,7 @@ import java.util.*;
 // Інтерфейс командного рядка
 public class CLI {
     private final Scanner scanner = new Scanner(System.in); // Сканер
+    DB db = new DB();
 
     // Головний метод класу
     public void run() {
@@ -19,27 +20,27 @@ public class CLI {
             int command = getInt(); // Отримати команду від користувача
             switch (command) {
                 case 1 -> { // Команда на реєстрацію нової тварини
-                    AnimalTypes animalTypes = getAnimalTypes(); // Отримати тип тварини
+                    Animal animal = new Animal(getAnimalTypes()); // Отримати тип тварини та створити екземпляр тварини
                     System.out.println("Введіть кличку тварини:"); // Повідомити про те, якого вводу програма очікує
-                    animalTypes.setAnimalNickname(getString()); // Кличка тварини
+                    animal.setAnimalNickname(getString()); // Кличка тварини
                     System.out.println("Введіть ІПН господаря:"); // Повідомити про те, якого вводу програма очікує
-                    animalTypes.setTINOfTheHost(getTIN()); // ІПН господаря
+                    animal.setTINOfTheHost(getTIN()); // ІПН господаря
                     System.out.println("Введіть ПІБ господаря:"); // Повідомити про те, якого вводу програма очікує
-                    animalTypes.setFullNameOfTheHost(getString()); // ПІБ господаря
+                    animal.setFullNameOfTheHost(getString()); // ПІБ господаря
                     System.out.println("Введіть діагноз:"); // Повідомити про те, якого вводу програма очікує
-                    animalTypes.setDiagnosis(getString()); // Діагноз
+                    animal.setDiagnosis(getString()); // Діагноз
                     System.out.println("Введіть вагу:"); // Повідомити про те, якого вводу програма очікує
-                    animalTypes.setWeight(getDouble()); // Вага
+                    animal.setWeight(getDouble()); // Вага
                     System.out.println("Введіть лікування:"); // Повідомити про те, якого вводу програма очікує
-                    animalTypes.setTreatment(getString()); // Лікування
-                    getInformationAboutTheInitialReview(animalTypes); // Опис первинного огляду, частин тіла тварини
-                    DB.addToFile(animalTypes); // Додати нову тварину до бази даних
+                    animal.setTreatment(getString()); // Лікування
+                    getInformationAboutTheInitialReview(animal); // Опис первинного огляду, частин тіла тварини
+                    db.addToFile(animal); // Додати нову тварину до бази даних
                     System.out.println("Нову тварину додано успішно!"); // Повідомити про успішну операцію користувача
                 }
                 case 2 -> { // Знайти тварин по ІПН господаря
                     System.out.println("Введіть ІПН господаря:"); // Повідомити про те, якого вводу програма очікує
-                    List<AnimalTypes> animalTypes = DB.searchForAnimalsByTheOwnersPersonalIdentificationNumber(getTIN());// ІПН господаря
-                    for (AnimalTypes animalType : animalTypes) { // Біг по знайденому
+                    List<Animal> animalTypes = db.searchForAnimalsByTheOwnersPersonalIdentificationNumber(getTIN()); // ІПН господаря
+                    for (Animal animalType : animalTypes) { // Біг по знайденому
                         System.out.println(animalType); // Друкувати в консоль
                     }
                 }
@@ -52,12 +53,11 @@ public class CLI {
         }
     }
 
-    // Отримати інформацію про первинний огляд
-    private void getInformationAboutTheInitialReview(AnimalTypes animalType) {
-        HashMap<String, String> map = animalType.getDescriptionOfTheInitialExamination().getMap(); // Отримати карту частин тіла
-        for (String key : map.keySet()) { // Біг по ключам
+    // Отримати інформацію з консолі про первинний огляд
+    private void getInformationAboutTheInitialReview(Animal animal) {
+        for (String key : animal.getAnimalTypes().getPartsOfTheBody()) { // Біг по ключам
             System.out.println("Введіть первинний стан для такої частини тіла як: " + key); // Повідомити про те, якого вводу програма очікує
-            animalType.setDescriptionOfTheInitialExamination(key, getString()); // Отримати та встановити значення по ключу
+            animal.setDescriptionOfTheInitialExamination(key, getString()); // Отримати та встановити значення по ключу
         }
     }
 
@@ -111,10 +111,20 @@ public class CLI {
     // Отримати тип тварини
     private AnimalTypes getAnimalTypes() {
         // Друкувати список доступних типів тварин
-        System.out.println("Оберіть тип тварини зі списку: " + Arrays.toString(AnimalTypes.values()));
+        List<String> names = new ArrayList<>(); // Список назв типів
+        for (AnimalTypes value : AnimalTypes.values()) { // Біг по всім enums
+            names.add(value.getName()); // Отримати ім'я екземпляра
+        }
+        System.out.println("Оберіть тип тварини зі списку: " + names);
         while (true) { // Нескінченний цикл
             try {
-                return AnimalTypes.valueOf(scanner.nextLine()); // Отримати слово, яке можна привести до типу тварини
+                String name = scanner.nextLine(); // Отримати ввід від користувача
+                for (AnimalTypes value : AnimalTypes.values()) { // Біг по всім enums
+                    if (value.getName().equals(name)) { // Якщо є такий
+                        return value;
+                    }
+                }
+                System.out.println("Спробуйте ще раз, вірно ввести назву типу тварини!");
             } catch (Exception ex) {
                 System.out.println("Спробуйте ще раз, вірно ввести назву типу тварини!");
             }

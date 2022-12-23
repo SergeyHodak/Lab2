@@ -19,17 +19,20 @@ public class DB {
     private static final String CONDITION_OF_BODY_PARTS = "map"; // Стан частин тіла
     private static final String VARIABLE_SEPARATOR = "\n"; // Роздільник між змінними
     private static final String SEPARATOR_BETWEEN_THE_VARIABLE_NAME_AND_IT_VALUE = ":"; // Роздільник між назвою змінної та її значенням
+    private static final String SEPARATOR_BETWEEN_MAP_OBJECTS = "@"; // Роздільник між об'єктами карти
+    private static final String CLASS_SEPARATOR = "}}"; // Роздільник між класами
+    private static final String THE_SEPARATOR_BETWEEN_THE_KEY_AND_THE_VALUE_IN_THE_MAP = "="; // Роздільник між ключем та значенням в карті
 
-    private static final List<AnimalTypes> DB = readFile(); // Якщо програма стартонула, то підтягне інформацію з файлу в цей масив
+    private final List<Animal> db = readFile(); // Якщо програма стартонула, то підтягне інформацію з файлу в цей масив
 
-    public static List<AnimalTypes> getDb() {
-        return DB;
+    public List<Animal> getDb() {
+        return db;
     }
 
     // Пошук тварини по ІПН господаря
-    public static List<AnimalTypes> searchForAnimalsByTheOwnersPersonalIdentificationNumber(int[] TIN) {
-        List<AnimalTypes> result = new ArrayList<>(); // Список на віддачу
-        for (AnimalTypes animalTypes : DB) { // Біг по всій базі даних
+    public List<Animal> searchForAnimalsByTheOwnersPersonalIdentificationNumber(int[] TIN) {
+        List<Animal> result = new ArrayList<>(); // Список на віддачу
+        for (Animal animalTypes : db) { // Біг по всій базі даних
             int[] tinOfTheHost = animalTypes.getTINOfTheHost(); // Отримати ІПН господаря з позиції
             boolean checkResult = true; // Результат перевірки
             for (int i = 0; i < 10; i++) { // Біг по цифрах
@@ -39,7 +42,6 @@ public class DB {
                 }
             }
             if (checkResult) { // Якщо є відповідність
-                System.out.println("TEST:" + animalTypes);
                 result.add(animalTypes); // Додати в список на віддачу
             }
         }
@@ -47,9 +49,9 @@ public class DB {
     }
 
     // Додати до файлу
-    public static void addToFile(AnimalTypes unit) {
+    public void addToFile(Animal unit) {
         StringBuilder text = new StringBuilder("}\n" + // Відкрити інформаційний запис
-                TYPE + ":" + unit.name() + "\n" + // Тип тварини
+                TYPE + ":" + unit.getAnimalTypes().name() + "\n" + // Тип тварини
                 ANIMAL_NICKNAME + ":" + unit.getAnimalNickname() + "\n" + // Кличка тварини
                 TIN_OF_THE_HOST + ":" + unit.getTINOfTheHost()[0] + // (1) ІПН господаря (10 значне число)
                 "" + unit.getTINOfTheHost()[1] + // (2) ІПН господаря (10 значне число)
@@ -67,15 +69,15 @@ public class DB {
                 TREATMENT + ":" + unit.getTreatment() + "\n" + // Лікування
                 LAST_VISIT_DATE + ":" + unit.getLastVisitDate() + "\n" + // Останній візит
                 CONDITION_OF_BODY_PARTS + ":"); // Карта стану частин тіла, відкрити перелік
-        Set<String> strings = unit.getDescriptionOfTheInitialExamination().getMap().keySet(); // Отримали список ключів
+        Set<String> strings = unit.getDescriptionOfTheInitialExamination().keySet(); // Отримали список ключів
         int size = strings.size(); // Кількість ключів
         int i = 1; // Лічильник кроків
         for (String string : strings) { // Біг по ключам
             text.append(string); // Ключ
-            text.append("="); // Роздільник між ключ-значенням
-            text.append(unit.getDescriptionOfTheInitialExamination().getMap().get(string)); // Значення
+            text.append(THE_SEPARATOR_BETWEEN_THE_KEY_AND_THE_VALUE_IN_THE_MAP); // Роздільник між ключ-значенням
+            text.append(unit.getDescriptionOfTheInitialExamination().get(string)); // Значення
             if (i != size) { // Якщо це не остання частина тіла в цьому масиві
-                text.append("$"); // Роздільник між частинами тіла
+                text.append(SEPARATOR_BETWEEN_MAP_OBJECTS); // Роздільник між частинами тіла
             }
             i++; // Зарахувати крок
         }
@@ -89,11 +91,11 @@ public class DB {
         } catch (IOException e) { // Якщо під час запису виникла помилка
             System.out.println(e.getMessage()); // Друкувати повідомлення про помилку в консоль
         }
-        DB.add(unit); // Також зареєструвати в змінну, щоб не читати знову повністю файл
+        db.add(unit); // Також зареєструвати в змінну, щоб не читати знову повністю файл
     }
 
     // Прочитати з файлу
-    private static List<AnimalTypes> readFile() {
+    private List<Animal> readFile() {
         StringBuilder read = new StringBuilder(); // Приймач даних з файлу
         try (FileReader reader = new FileReader(FILE_NAME)) { // Екземпляр читача в середині виключення
             int c; // Змінна в яку буде записуватись значення прочитаного байту
@@ -104,22 +106,19 @@ public class DB {
         } catch (IOException e) { // Якщо щось пішло не так в процесі читання, чи створенні цього процесу
             System.out.println(e.getMessage()); // Друкувати повідомлення помилки в консоль
         }
-        List<AnimalTypes> result = new ArrayList<>(); // Для віддачі результату
-        String classSeparator = "}}"; // Роздільник між класами
-        String separatorBetweenMapObjects = "$"; // Роздільник між об'єктами карти
-        String theSeparatorBetweenTheKeyAndTheValueInTheMap = "="; // Роздільник між ключем та значенням в карті
+        List<Animal> result = new ArrayList<>(); // Для віддачі результату
 
-        String[] objects = read.toString().strip().split(classSeparator); // Поділити на класи
+        String[] objects = read.toString().strip().split(CLASS_SEPARATOR); // Поділити на класи
         for (String object : objects) { // Біг по класам
             object = object.replace("}", "").strip(); // Видалити вказаний символ, та очистити від невидимок з країв
-            System.out.println("object = " + object);
-            AnimalTypes animal = getType(object); // Об'єкт для збереження інформації про тварину
-            assert animal != null;
+            Animal animal = new Animal(getType(object)); // Об'єкт для збереження інформації про тварину
             String[] variables = object.split(VARIABLE_SEPARATOR); // Поділити на змінні
             for (String variable : variables) { // Біг по змінних
                 String[] variableNameAndItValue = variable.strip().split(SEPARATOR_BETWEEN_THE_VARIABLE_NAME_AND_IT_VALUE); // Розділити на назву змінної та її значення
                 variableNameAndItValue[0] = variableNameAndItValue[0].strip(); // Почистити назву змінної від невидимок з країв
-                variableNameAndItValue[1] = variableNameAndItValue[1].strip(); // Почистити значення для змінної від невидимок з країв
+                if (variableNameAndItValue.length > 1) {
+                    variableNameAndItValue[1] = variableNameAndItValue[1].strip(); // Почистити значення для змінної від невидимок з країв
+                }
                 switch (variableNameAndItValue[0]) { // Яка назва змінної
                     case ANIMAL_NICKNAME -> { // Кличка тварини
                         animal.setAnimalNickname(variableNameAndItValue[1]);
@@ -153,26 +152,25 @@ public class DB {
                         }
                     }
                     case CONDITION_OF_BODY_PARTS -> { // Стан частин тіла
-                        String[] mapObjects = variableNameAndItValue[1].split(separatorBetweenMapObjects); // Поділити на об'єкти карти
+                        if (variableNameAndItValue.length == 1) {
+                            break;
+                        }
+                        String[] mapObjects = variableNameAndItValue[1].split(SEPARATOR_BETWEEN_MAP_OBJECTS); // Поділити на об'єкти карти
                         for (String mapObject : mapObjects) { // Біг по об'єктах карти
                             mapObject = mapObject.strip(); // Очистити об'єкт від невидимок з країв
-                            String[] keyValue = mapObject.split(theSeparatorBetweenTheKeyAndTheValueInTheMap); // Поділити на ключ та значення
+                            String[] keyValue = mapObject.split(THE_SEPARATOR_BETWEEN_THE_KEY_AND_THE_VALUE_IN_THE_MAP); // Поділити на ключ та значення
                             animal.setDescriptionOfTheInitialExamination(keyValue[0].strip(), keyValue[1].strip()); // Зареєструвати в карту
                         }
                     }
                 }
             }
-            System.out.println("А = " + Arrays.toString(animal.getTINOfTheHost()));
             result.add(animal); // Додати клас в список
-            for (AnimalTypes animalTypes : result) {
-                System.out.println("Б = " + Arrays.toString(animalTypes.getTINOfTheHost()));
-            }
         }
         return result; // Віддати результат роботи прочитаної та трансформованої інформації
     }
 
     // Отримати тип тварини
-    private static AnimalTypes getType(String object) {
+    private AnimalTypes getType(String object) {
         String[] variables = object.split(VARIABLE_SEPARATOR); // Поділити на змінні
         for (String variable : variables) { // Біг по змінних
             variable = variable.strip(); // Очистити від невидимок з країв
@@ -180,7 +178,7 @@ public class DB {
             variableNameAndItValue[0] = variableNameAndItValue[0].strip(); // Очистити від невидимок з країв
             variableNameAndItValue[1] = variableNameAndItValue[1].strip(); // Очистити від невидимок з країв
             if (Objects.equals(variableNameAndItValue[0], TYPE)) { // Якщо ця змінна відповідає за тип тварини
-                return AnimalTypes.valueOf(variableNameAndItValue[1]); // Встановити тип
+                return AnimalTypes.valueOf(variableNameAndItValue[1]);
             }
         }
         return null;
