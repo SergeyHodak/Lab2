@@ -43,10 +43,101 @@ public class CLI {
                     for (Animal animalType : animalTypes) { // Біг по знайденому
                         System.out.println(animalType); // Друкувати в консоль
                     }
+                    intermediateMenu(animalTypes); // Запустити проміжне меню
                 }
                 case 3 -> { // Команда на вихід
                     scanner.close(); // Закрити сканер
                     return; // Вийти з циклу та методу
+                }
+                default -> System.out.println("Така команда не зареєстрована");
+            }
+        }
+    }
+
+    // Проміжне меню
+    private void intermediateMenu(List<Animal> animals) {
+        while(true) { // Нескінченний цикл
+            // Текст про команди проміжного меню
+            String commandsInfo =
+                    """
+                    Введіть номер команди:
+                    1 - Перейти в меню прийому
+                    2 - Скасовувати дію
+                    """;
+            System.out.println(commandsInfo); // Друкувати список доступних команд
+            int command = getInt(); // Отримати команду від користувача
+            switch (command) {
+                case 1 -> { // Перейти в меню прийому
+                    System.out.println("Введіть кличку тварини, для початку прийому:"); // Повідомити про те, якого вводу програма очікує
+                    String nickName = getString(); // Отримати ввід
+                    Animal result = null; // Тварина для прийому
+                    for (Animal animal : animals) {
+                        if (animal.getAnimalNickname().equals(nickName)) { // Якщо все ок, і зі списку обрано потрібну тварину
+                            result = animal; // Ініціалізувати
+                        }
+                    }
+                    if (result != null) {
+                        receptionMenu(result); // Перейти в меню прийому
+                    } else {
+                        System.out.println("Ви ввели не вірно кличку, активуйте команду знову");
+                    }
+                }
+                case 2 -> { // Скасовувати дію
+                    return;
+                }
+                default -> System.out.println("Така команда не зареєстрована");
+            }
+        }
+    }
+
+    // Меню прийому
+    private void receptionMenu(Animal animal) {
+        while(true) { // Нескінченний цикл
+            // Текст про команди меню прийому
+            String commandsInfo =
+                    """
+                    Введіть номер команди:
+                    1 - Змінити діагноз
+                    2 - Змінити вагу
+                    3 - Змінити опис лікування
+                    4 - Змінити стан частин тіла
+                    5 - Завершити прийом
+                    """;
+            System.out.println(commandsInfo); // Друкувати список доступних команд
+            int command = getInt(); // Отримати команду від користувача
+            switch (command) {
+                case 1 -> { // Змінити діагноз
+                    System.out.println("Введіть оновлення для поля діагноз:"); // Повідомити про те, якого вводу програма очікує
+                    animal.setDiagnosis(getString());
+                }
+                case 2 -> { // Змінити вагу
+                    System.out.println("Введіть оновлення для поля вага:"); // Повідомити про те, якого вводу програма очікує
+                    animal.setWeight(getDouble());
+                }
+                case 3 -> { // Змінити опис лікування
+                    System.out.println("Введіть оновлення для поля лікування:"); // Повідомити про те, якого вводу програма очікує
+                    animal.setTreatment(getString());
+                }
+                case 4 -> { // Змінити стан частин тіла
+                    for (Map.Entry<String, String> stringStringEntry : animal.getDescriptionOfTheInitialExamination().entrySet()) {
+                        // Повідомити про те, якого вводу програма очікує
+                        System.out.println("Попередній вміст: \"" + stringStringEntry.getValue() +
+                                "\". Введіть оновлення для " + stringStringEntry.getKey() + ":");
+                        animal.setDescriptionOfTheInitialExamination(stringStringEntry.getKey(), getString());
+                    }
+                }
+                case 5 -> { // Завершити прийом
+                    animal.setLastVisitDate(new Date()); // Встановити поточну дату
+                    StringBuilder TIN = new StringBuilder(); // ІПН господаря
+                    for (int i : animal.getTINOfTheHost()) { // Біг по цифрах
+                        TIN.append(i); // Додати в рядок
+                    }
+                    System.out.println("ІПН:" + TIN);
+                    System.out.println("Назва клініки:" + "Та що придбала цей проект");
+                    System.out.println("Сума до оплати:" + animal.getAPrice());
+                    System.out.println("Пророцтво на сьогодні:" + new Prophecy().getRandomProphecy());
+                    db.updateFile(); // Оновити файл бази даних
+                    return;
                 }
                 default -> System.out.println("Така команда не зареєстрована");
             }

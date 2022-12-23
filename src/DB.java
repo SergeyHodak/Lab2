@@ -48,42 +48,24 @@ public class DB {
         return result; // Віддати результат
     }
 
-    // Додати до файлу
-    public void addToFile(Animal unit) {
-        StringBuilder text = new StringBuilder("}\n" + // Відкрити інформаційний запис
-                TYPE + ":" + unit.getAnimalTypes().name() + "\n" + // Тип тварини
-                ANIMAL_NICKNAME + ":" + unit.getAnimalNickname() + "\n" + // Кличка тварини
-                TIN_OF_THE_HOST + ":" + unit.getTINOfTheHost()[0] + // (1) ІПН господаря (10 значне число)
-                "" + unit.getTINOfTheHost()[1] + // (2) ІПН господаря (10 значне число)
-                "" + unit.getTINOfTheHost()[2] + // (3) ІПН господаря (10 значне число)
-                "" + unit.getTINOfTheHost()[3] + // (4) ІПН господаря (10 значне число)
-                "" + unit.getTINOfTheHost()[4] + // (5) ІПН господаря (10 значне число)
-                "" + unit.getTINOfTheHost()[5] + // (6) ІПН господаря (10 значне число)
-                "" + unit.getTINOfTheHost()[6] + // (7) ІПН господаря (10 значне число)
-                "" + unit.getTINOfTheHost()[7] + // (8) ІПН господаря (10 значне число)
-                "" + unit.getTINOfTheHost()[8] + // (9) ІПН господаря (10 значне число)
-                "" + unit.getTINOfTheHost()[9] + "\n" + // (10) ІПН господаря (10 значне число)
-                FULL_NAME_OF_THE_HOST + ":" + unit.getFullNameOfTheHost() + "\n" + // ПІБ господаря
-                DIAGNOSIS + ":" + unit.getDiagnosis() + "\n" + // Діагноз
-                WEIGHT + ":" + unit.getWeight() + "\n" + // Вага
-                TREATMENT + ":" + unit.getTreatment() + "\n" + // Лікування
-                LAST_VISIT_DATE + ":" + unit.getLastVisitDate() + "\n" + // Останній візит
-                CONDITION_OF_BODY_PARTS + ":"); // Карта стану частин тіла, відкрити перелік
-        Set<String> strings = unit.getDescriptionOfTheInitialExamination().keySet(); // Отримали список ключів
-        int size = strings.size(); // Кількість ключів
-        int i = 1; // Лічильник кроків
-        for (String string : strings) { // Біг по ключам
-            text.append(string); // Ключ
-            text.append(THE_SEPARATOR_BETWEEN_THE_KEY_AND_THE_VALUE_IN_THE_MAP); // Роздільник між ключ-значенням
-            text.append(unit.getDescriptionOfTheInitialExamination().get(string)); // Значення
-            if (i != size) { // Якщо це не остання частина тіла в цьому масиві
-                text.append(SEPARATOR_BETWEEN_MAP_OBJECTS); // Роздільник між частинами тіла
-            }
-            i++; // Зарахувати крок
+    // Оновити файл
+    public void updateFile() {
+        StringBuilder text = new StringBuilder();
+        for (Animal animal : db) { // Біг по списку зареєстрованих тварин
+            text.append(convertClassToText(animal)); // Перетворити клас в текст
         }
-        text.append("\n"); // Закрили перелік стану частин тіла
-        text.append("}"); // Закрили інформаційний запис
+        File file = new File(FILE_NAME); // Екземпляр файлу
+        try (FileWriter writer = new FileWriter(file)) { // Екземпляр записувача в тілі виключення
+            writer.write(text.toString().toString()); // Виконати запис до файлу
+            writer.flush(); // Закрити процес запису
+        } catch (IOException e) { // Якщо під час запису виникла помилка
+            System.out.println(e.getMessage()); // Друкувати повідомлення про помилку в консоль
+        }
+    }
 
+    // Додати до файлу
+    public void addToFile(Animal animal) {
+        String text = convertClassToText(animal); // Перетворити клас в текст
         File file = new File(FILE_NAME); // Екземпляр файлу
         try (FileWriter writer = new FileWriter(file, true)) { // Екземпляр записувача в тілі виключення
             writer.write(text.toString()); // Виконати запис до файлу
@@ -91,7 +73,7 @@ public class DB {
         } catch (IOException e) { // Якщо під час запису виникла помилка
             System.out.println(e.getMessage()); // Друкувати повідомлення про помилку в консоль
         }
-        db.add(unit); // Також зареєструвати в змінну, щоб не читати знову повністю файл
+        db.add(animal); // Також зареєструвати в змінну, щоб не читати знову повністю файл
     }
 
     // Прочитати з файлу
@@ -182,5 +164,43 @@ public class DB {
             }
         }
         return null;
+    }
+
+    // Перетворити клас в текст
+    private String convertClassToText(Animal animal) {
+        StringBuilder text = new StringBuilder("}\n" + // Відкрити інформаційний запис
+                TYPE + ":" + animal.getAnimalTypes().name() + "\n" + // Тип тварини
+                ANIMAL_NICKNAME + ":" + animal.getAnimalNickname() + "\n" + // Кличка тварини
+                TIN_OF_THE_HOST + ":" + animal.getTINOfTheHost()[0] + // (1) ІПН господаря (10 значне число)
+                "" + animal.getTINOfTheHost()[1] + // (2) ІПН господаря (10 значне число)
+                "" + animal.getTINOfTheHost()[2] + // (3) ІПН господаря (10 значне число)
+                "" + animal.getTINOfTheHost()[3] + // (4) ІПН господаря (10 значне число)
+                "" + animal.getTINOfTheHost()[4] + // (5) ІПН господаря (10 значне число)
+                "" + animal.getTINOfTheHost()[5] + // (6) ІПН господаря (10 значне число)
+                "" + animal.getTINOfTheHost()[6] + // (7) ІПН господаря (10 значне число)
+                "" + animal.getTINOfTheHost()[7] + // (8) ІПН господаря (10 значне число)
+                "" + animal.getTINOfTheHost()[8] + // (9) ІПН господаря (10 значне число)
+                "" + animal.getTINOfTheHost()[9] + "\n" + // (10) ІПН господаря (10 значне число)
+                FULL_NAME_OF_THE_HOST + ":" + animal.getFullNameOfTheHost() + "\n" + // ПІБ господаря
+                DIAGNOSIS + ":" + animal.getDiagnosis() + "\n" + // Діагноз
+                WEIGHT + ":" + animal.getWeight() + "\n" + // Вага
+                TREATMENT + ":" + animal.getTreatment() + "\n" + // Лікування
+                LAST_VISIT_DATE + ":" + animal.getLastVisitDate() + "\n" + // Останній візит
+                CONDITION_OF_BODY_PARTS + ":"); // Карта стану частин тіла, відкрити перелік
+        Set<String> strings = animal.getDescriptionOfTheInitialExamination().keySet(); // Отримали список ключів
+        int size = strings.size(); // Кількість ключів
+        int i = 1; // Лічильник кроків
+        for (String string : strings) { // Біг по ключам
+            text.append(string); // Ключ
+            text.append(THE_SEPARATOR_BETWEEN_THE_KEY_AND_THE_VALUE_IN_THE_MAP); // Роздільник між ключ-значенням
+            text.append(animal.getDescriptionOfTheInitialExamination().get(string)); // Значення
+            if (i != size) { // Якщо це не остання частина тіла в цьому масиві
+                text.append(SEPARATOR_BETWEEN_MAP_OBJECTS); // Роздільник між частинами тіла
+            }
+            i++; // Зарахувати крок
+        }
+        text.append("\n"); // Закрили перелік стану частин тіла
+        text.append("}"); // Закрили інформаційний запис
+        return text.toString();
     }
 }

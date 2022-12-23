@@ -135,4 +135,9 @@ public class Animal {
                 "    Стан_частин_тіла=" + theStateOfBodyParts + '\n' +
                 '}';
     }
+
+    // Отримати Вартість прийому
+    public double getAPrice() {
+        return getAnimalTypes().getConstant() * getWeight(); // Константа на вагу
+    }
 }
